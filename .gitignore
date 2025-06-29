@@ -15,6 +15,7 @@ dead-link-checker
 
 # IDE/editor files
 .idea/
+.idea
 .vscode/
 *.swp
 
