@@ -1,18 +1,40 @@
 package internal
 
 import (
+	"fmt"
 	"golang.org/x/net/html"
 	"strings"
 )
 
 // ParseLinks parses the HTML content and extracts all links.
 func ParseLinks(htmlContent string) ([]string, error) {
-	var placeHolder []string
-	return placeHolder, nil
+	var links []string
+	// Convert htmlString into a strings.reader
+	htmlReader := strings.NewReader(htmlContent)
+	doc, err := html.Parse(htmlReader)
+	if err != nil {
+		return nil, fmt.Errorf("HTML Error: %w", err)
+	}
+	// Call traverse nodes
+	traverseNodes(doc, &links)
+	return links, nil
 }
 
 // traverseNodes recursively traverses the HTML nodes to find links.
 func traverseNodes(n *html.Node, links *[]string) {
+	// Check if the current node is an anchor tage
+	if n.Type == html.ElementNode && n.Data == "a" {
+		// Extract the href
+		href := extractHref(n)
+		// If it is valid (string will not be empty), then append to array
+		if href != "" {
+			*links = append(*links, href)
+		}
+	}
+	// Recurse on child and sibling nodes
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		traverseNodes(c, links)
+	}
 
 }
 
