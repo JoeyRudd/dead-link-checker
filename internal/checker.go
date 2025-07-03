@@ -24,9 +24,9 @@ func GetDeadLinks(urls *[]string) []string {
 			deadLinks = append(deadLinks, url) // Network error
 			continue
 		}
-		defer resp.Body.Close()
 
-		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		// After following a redirect, only treat 4xx or 5xx as dead
+		if resp.StatusCode >= 400 {
 			deadLinks = append(deadLinks, url) // Non 2xx code
 		}
 
