@@ -70,13 +70,9 @@ func cleanURL(url string) string {
 		return ""
 	}
 
-	// Skip URLs that are not absolute or relative
-	if strings.HasPrefix(url, "/") || strings.HasPrefix(url, "../") {
-		return ""
-	}
-
 	// Ensure the URL starts with a valid scheme
-	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
+	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") &&
+		!strings.HasPrefix(url, "/") && !strings.HasPrefix(url, "../") {
 		url = "http://" + url
 	}
 
