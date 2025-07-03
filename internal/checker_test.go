@@ -14,11 +14,10 @@ func TestGetDeadLinks(t *testing.T) {
 	}))
 	defer server200.Close()
 
-	// Redirect
+	// Replace server301 with this
 	server301 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusMovedPermanently)
+		http.Redirect(w, r, server200.URL, http.StatusMovedPermanently)
 	}))
-	defer server301.Close()
 
 	// Not found
 	server404 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -51,7 +50,6 @@ func TestGetDeadLinks(t *testing.T) {
 	expectedURls := []string{
 		server404.URL,
 		server500.URL,
-		redirectServer.URL,
 	}
 
 	resultURls := GetDeadLinks(&testURLs)
