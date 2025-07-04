@@ -12,9 +12,9 @@ func TestCleanURL(t *testing.T) {
 	}{
 		{" http://example.com ", "http://example.com"},
 		{"https://example.com", "https://example.com"},
-		{"example.com", "http://example.com"},
-		{"/relative/path", ""},
-		{"../up/one", ""},
+		{"example.com", "example.com"},       // Allow relative paths without protocol
+		{"/relative/path", "/relative/path"}, // Allow relative paths for site traversal
+		{"../up/one", "../up/one"},           // Allow parent directory navigation
 		{"mailto:test@example.com", ""},
 		{"javascript:alert('x')", ""},
 		{"tel:1234567890", ""},
@@ -43,9 +43,9 @@ func TestExtractHref(t *testing.T) {
 		expected string
 	}{
 		{makeAnchor("http://example.com"), "http://example.com"},
-		{makeAnchor("example.com"), "http://example.com"},
+		{makeAnchor("example.com"), "example.com"}, // Allow relative paths without protocol
 		{makeAnchor("mailto:test@example.com"), ""},
-		{makeAnchor("/relative/path"), ""},
+		{makeAnchor("/relative/path"), "/relative/path"}, // Allow relative paths for site traversal
 		{makeAnchor(""), ""},
 		{&html.Node{Type: html.ElementNode, Data: "div"}, ""}, // not an anchor
 	}
@@ -78,7 +78,7 @@ func TestParseLinks(t *testing.T) {
 		{
 			name:     "nested links in divs",
 			html:     `<div><a href="example.com">Link</a></div><p><a href="https://test.com">Test</a></p>`,
-			expected: []string{"http://example.com", "https://test.com"},
+			expected: []string{"example.com", "https://test.com"}, // Allow relative paths
 		},
 		{
 			name:     "no links",
@@ -88,7 +88,7 @@ func TestParseLinks(t *testing.T) {
 		{
 			name:     "invalid links filtered out",
 			html:     `<a href="mailto:test@example.com">Email</a><a href="/relative">Relative</a><a href="http://valid.com">Valid</a>`,
-			expected: []string{"http://valid.com"},
+			expected: []string{"/relative", "http://valid.com"}, // Include relative paths for site traversal
 		},
 		{
 			name:     "empty html",

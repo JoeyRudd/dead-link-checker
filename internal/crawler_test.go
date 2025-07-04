@@ -156,10 +156,11 @@ func TestCrawlRecursive(t *testing.T) {
 
 	t.Run("max depth exceeded", func(t *testing.T) {
 		visited := make(map[string]bool)
+		collected := make(map[string]bool)
 		var allLinks []string
 
 		// Call with depth > maxDepth
-		crawlRecursive("https://example.com", "https://example.com", 2, 1, visited, &allLinks)
+		crawlRecursive("https://example.com", "https://example.com", 2, 1, visited, &allLinks, collected)
 
 		// Should not add any links since depth exceeds maxDepth
 		if len(allLinks) != 0 {
@@ -175,9 +176,10 @@ func TestCrawlRecursive(t *testing.T) {
 	t.Run("already visited URL", func(t *testing.T) {
 		visited := make(map[string]bool)
 		visited["https://example.com"] = true
+		collected := make(map[string]bool)
 		var allLinks []string
 
-		crawlRecursive("https://example.com", "https://example.com", 0, 2, visited, &allLinks)
+		crawlRecursive("https://example.com", "https://example.com", 0, 2, visited, &allLinks, collected)
 
 		// Should not process already visited URL
 		if len(allLinks) != 0 {
