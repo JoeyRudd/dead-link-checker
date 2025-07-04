@@ -22,3 +22,6 @@ dead-link-checker
 # OS files
 .DS_Store
 Thumbs.db
+
+# Personal files
+rules.txt
