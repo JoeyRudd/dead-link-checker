@@ -8,10 +8,21 @@ import (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "dead-link-checker",
-	Short: "A website checker for dead links",
-	Long: `A website checker for dead links, input the url and 
-		receive back a list of dead links.`,
+	Use:   "dead-link-checker [command]",
+	Short: "Fast, reliable dead link detection for websites",
+	Long: `Dead Link Checker is a command-line tool that crawls websites to detect broken links.
+
+It recursively follows internal links to map your entire site structure and identifies:
+• HTTP errors (404, 500, etc.)
+• Timeout and network issues  
+• Unreachable resources
+
+Perfect for web developers, SEO audits, and site maintenance.`,
+	Example: `  # Check a website with default depth (2 levels)
+  dead-link-checker check https://example.com
+  
+  # Check with custom depth
+  dead-link-checker check https://example.com -d 5`,
 }
 
 func Execute() {
@@ -22,6 +33,5 @@ func Execute() {
 }
 
 func init() {
-
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	
 }
