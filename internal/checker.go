@@ -17,13 +17,25 @@ func GetDeadLinks(urls *[]string) []string {
 	}
 
 	for _, url := range *urls {
-		// Make a head request to url
-		resp, err := client.Head(url)
+		// Create a head request to url
+		req, err := http.NewRequest("GET", url, nil)
 		if err != nil {
-			fmt.Errorf("Error fetching URL %s: %s\n", url, err)
+			fmt.Errorf("Error creating request for URL %s: %s\n", url, err)
 			deadLinks = append(deadLinks, url) // Network error
 			continue
 		}
+
+		// Add user agent header
+		req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+
+		// Execute request
+		resp, err := client.Do(req)
+		if err != nil {
+			fmt.Errorf("Error getting URL %s: %s\n", url, err)
+			deadLinks = append(deadLinks, url)
+			continue
+		}
+		resp.Body.Close() // close response body
 
 		// After following a redirect, only treat 4xx or 5xx as dead
 		if resp.StatusCode >= 400 {
