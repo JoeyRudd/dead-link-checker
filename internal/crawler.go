@@ -6,16 +6,17 @@ import (
 
 func CrawlSite(startURL string, maxDepth int) []string {
 	visited := make(map[string]bool)
+	collected := make(map[string]bool)
 	var allLinks []string
 
 	// Call recursive function
-	crawlRecursive(startURL, startURL, 0, maxDepth, visited, &allLinks)
+	crawlRecursive(startURL, startURL, 0, maxDepth, visited, &allLinks, collected)
 
 	return allLinks
 
 }
 
-func crawlRecursive(currentURL, baseURL string, depth, maxDepth int, visited map[string]bool, allLinks *[]string) {
+func crawlRecursive(currentURL, baseURL string, depth, maxDepth int, visited map[string]bool, allLinks *[]string, collected map[string]bool) {
 	// Stop if too deep
 	if depth > maxDepth {
 		return
@@ -44,10 +45,15 @@ func crawlRecursive(currentURL, baseURL string, depth, maxDepth int, visited map
 	for _, link := range links {
 		absoluteURL := resolveURL(link, currentURL)
 		if absoluteURL != "" {
-			*allLinks = append(*allLinks, absoluteURL)
+			if collected[absoluteURL] {
+				continue
+			} else {
+				*allLinks = append(*allLinks, absoluteURL)
+				collected[absoluteURL] = true
+			}
 
 			if isInternalLink(absoluteURL, baseURL) {
-				crawlRecursive(absoluteURL, baseURL, depth+1, maxDepth, visited, allLinks)
+				crawlRecursive(absoluteURL, baseURL, depth+1, maxDepth, visited, allLinks, collected)
 			}
 		}
 	}

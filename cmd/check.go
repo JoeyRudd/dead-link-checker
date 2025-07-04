@@ -17,11 +17,11 @@ var checkCmd = &cobra.Command{
 		if err != nil {
 			fmt.Println("Error retreiving depth")
 		}
-		// Get url from command
+		// Get url and pass into crawler then retreive deadlinks
 		url := args[0]
-		// Pass url into crawler
+		fmt.Println("Checking " + url)
 		siteURLs := internal.CrawlSite(url, depth)
-		// deadURLs
+		fmt.Println("Collecting dead URLs:")
 		deadURLs := internal.GetDeadLinks(&siteURLs)
 		for _, deadURL := range deadURLs {
 			fmt.Println(deadURL)
@@ -33,6 +33,5 @@ var checkCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(checkCmd)
 	// Depth flag
-	checkCmd.Flags().IntP("depth", "d", 2, "Depth of website to scrape")
-	)
+	checkCmd.Flags().IntP("depth", "d", 2, "Maximum crawl depth")
 }

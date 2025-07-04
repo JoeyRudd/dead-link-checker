@@ -20,7 +20,7 @@ func GetDeadLinks(urls *[]string) []string {
 		// Make a head request to url
 		resp, err := client.Head(url)
 		if err != nil {
-			fmt.Printf("Error fetching URL %s: %s\n", url, err)
+			fmt.Errorf("Error fetching URL %s: %s\n", url, err)
 			deadLinks = append(deadLinks, url) // Network error
 			continue
 		}
