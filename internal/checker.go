@@ -3,6 +3,7 @@ package internal
 import (
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -10,6 +11,10 @@ import (
 func GetDeadLinks(urls *[]string) []string {
 	// Holds dead links
 	var deadLinks []string
+	// Protext deadLinks from race conditions
+	var mu sync.Mutex
+	// Waits for all goroutines to finihs
+	var wg sync.WaitGroup
 
 	// Client with timeout
 	client := &http.Client{
@@ -17,31 +22,49 @@ func GetDeadLinks(urls *[]string) []string {
 	}
 
 	for _, url := range *urls {
-		// Create a head request to url
-		req, err := http.NewRequest("GET", url, nil)
-		if err != nil {
-			fmt.Printf("Error creating request for URL %s: %s\n", url, err)
-			deadLinks = append(deadLinks, url) // Network error
-			continue
-		}
+		// Tell waitgroup a goroutine is starting
+		wg.Add(1)
 
-		// Add user agent header
-		req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+		go func(url string) {
+			// Tell waitgroup this curren goroutine is complete
+			defer wg.Done()
 
-		// Execute request
-		resp, err := client.Do(req)
-		if err != nil {
-			fmt.Errorf("Error getting URL %s: %s\n", url, err)
-			deadLinks = append(deadLinks, url)
-			continue
-		}
-		resp.Body.Close() // close response body
+			// Create a head request to url
+			req, err := http.NewRequest("GET", url, nil)
+			if err != nil {
+				fmt.Printf("Error creating request for URL %s: %s\n", url, err)
+				mu.Lock()
+				deadLinks = append(deadLinks, url) // Network error
+				mu.Unlock()
+				return
+			}
 
-		// After following a redirect, only treat 4xx or 5xx as dead
-		if resp.StatusCode >= 400 {
-			deadLinks = append(deadLinks, url) // Non 2xx code
-		}
+			// Add user agent header
+			req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+
+			// Execute request
+			resp, err := client.Do(req)
+			if err != nil {
+				fmt.Printf("Error getting URL %s: %s\n", url, err)
+				mu.Lock()
+				deadLinks = append(deadLinks, url)
+				mu.Unlock()
+				return
+			}
+			resp.Body.Close() // close response body
+
+			// After following a redirect, only treat 4xx or 5xx as dead
+			if resp.StatusCode >= 400 {
+				mu.Lock()
+				deadLinks = append(deadLinks, url) // Non 2xx code
+				mu.Unlock()
+			}
+
+		}(url)
 
 	}
+
+	// Wait for all the goroutines to be done then return
+	wg.Wait()
 	return deadLinks
 }
